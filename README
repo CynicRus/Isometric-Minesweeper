@@ -2,4 +2,4 @@
 
 The implementation of the Minesweeper game in isometric projection.
 
-For compilation needed SFML >=2.x and any CPP compiler. Tested on Win and MacOS Mojave.
+For compilation needed SFML >=2.x and any CPP compiler. Tested on Win and MacOS High Sierra.
