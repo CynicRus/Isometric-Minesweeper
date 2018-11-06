@@ -262,7 +262,7 @@ void gameUpdate()
 		for (int stop = 15, k2 = 0; k2 <= stop; k2++)
 			if ((map[k][k2].state) == 0)
 				k11 = 1;
-	if ((k11 == 0) && (BombCount == 15))
+	if ((k11 == 0) && (BombCount == 16))
 		win = true;
 }
 
