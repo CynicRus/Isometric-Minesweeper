@@ -355,7 +355,7 @@ int main()
 				mouse = window.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y));
 				for (int i = 0; i <= 15; i++) {
 					for (int j = 0; j <= 15; j++) {
-						if ((mouse.x >= map[i][j].x) && (mouse.x <= map[i][j].x + 32) && (mouse.y >= map[i][j].y) && (mouse.y <= map[i][j].y + 64)) {
+						if ((mouse.x >= map[i][j].x) && (mouse.x <= map[i][j].x + 32) && (mouse.y >= map[i][j].y) && (mouse.y <= map[i][j].y + 32)) {
 							stx = map[i][j].x;
 							sty = map[i][j].y;
 #ifdef DEBUG
