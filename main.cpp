@@ -146,7 +146,7 @@ void gameUpdate()
 				int by = k2;
 				mode = 0;
 			}
-		if ((mode == 2) && (map[k][k2].state == 0) && (BombCount < 15))
+		if ((mode == 2) && (map[k][k2].state == 0) && (BombCount < 16))
 		{
 			map[k][k2].state = 2;
 			BombCount++;
