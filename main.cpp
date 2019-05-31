@@ -148,7 +148,11 @@ void gameUpdate()
 				int by = k2;
 				mode = 0;
 			}
+<<<<<<< HEAD
 		if ((mode == 2) && (map[k][k2].state == 0))
+=======
+		if ((mode == 2) && (map[k][k2].state == 0) && (BombCount < 16))
+>>>>>>> origin/master
 		{
 			map[k][k2].state = 2;
 			BombCount++;
@@ -266,7 +270,11 @@ void gameUpdate()
 		for (int stop = arrSize, k2 = 0; k2 <= stop; k2++)
 			if ((map[k][k2].state) == 0)
 				k11 = 1;
+<<<<<<< HEAD
 	if ((k11 == 0))
+=======
+	if ((k11 == 0) && (BombCount == 16))
+>>>>>>> origin/master
 		win = true;
 }
 
@@ -358,8 +366,13 @@ int main()
 
 			if (event.type == sf::Event::MouseMoved) {
 				mouse = window.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y));
+<<<<<<< HEAD
 				for (int i = 0; i <= arrSize; i++) {
 					for (int j = 0; j <= arrSize; j++) {
+=======
+				for (int i = 0; i <= 15; i++) {
+					for (int j = 0; j <= 15; j++) {
+>>>>>>> origin/master
 						if ((mouse.x >= map[i][j].x) && (mouse.x <= map[i][j].x + 32) && (mouse.y >= map[i][j].y) && (mouse.y <= map[i][j].y + 32)) {
 							stx = map[i][j].x;
 							sty = map[i][j].y;
