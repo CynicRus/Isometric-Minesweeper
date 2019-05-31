@@ -9,6 +9,9 @@
 
 enum GameState { g_played, g_endgame };
 
+#define cellSize 16
+#define arrSize 15
+
 struct Cell {
 	float x, y;
 	int state; //current state of the cell
@@ -20,8 +23,8 @@ struct Cell {
 int SX = 0, SY = 0;
 int ci = 0, cj = 0;//clicked cell index
 float stx = 0, sty = 0;//move mouse cell index
-Cell map[16][16];
-int BombMap[16][16];
+Cell map[cellSize][cellSize];
+int BombMap[cellSize][cellSize];
 // counters, etc
 int BombCount = 0;
 bool boom = false, win = false;
@@ -37,8 +40,8 @@ void buildField(int Cx, int Cy, int nbrx, int nbry, sf::Sprite s) {
 			{
 
 				sf::FloatRect bounds = s.getGlobalBounds();
-				map[k][k2].x = Cx + (bounds.width * (k + k2) / 2);
-				map[k][k2].y = Cy + (bounds.height * (k - k2) / 2);
+				map[k][k2].x = Cx + (bounds.width * (k - k2) / 2);
+				map[k][k2].y = Cy + (bounds.height * (k + k2) / 2);
 				map[k][k2].state = 0;
 			}
 		}
@@ -50,45 +53,45 @@ void buildField(int Cx, int Cy, int nbrx, int nbry, sf::Sprite s) {
 void placeBombs()
 {
 	int k = 0, k2 = 0, k3 = 0;
-	for (int stop = 15, k = 0; k <= stop; k++)
-		for (int stop = 15, k2 = 0; k2 <= stop; k2++)
+	for (int stop = arrSize, k = 0; k <= stop; k++)
+		for (int stop = arrSize, k2 = 0; k2 <= stop; k2++)
+		{
 			map[k][k2].state = 0;
-	for (int stop = 15, k = 0; k <= stop; k++)
-		for (int stop = 15, k2 = 0; k2 <= stop; k2++)
 			BombMap[k][k2] = 0;
-	BombCount = 16;
+		}
+	BombCount = 16 + rand() % 32;
 	do
 	{
-		k2 = rand() % 15;
-		k3 = rand() % 15;
+		k2 = rand() % arrSize;
+		k3 = rand() % arrSize;
 #ifdef DEBUG
 		std::cout << "k2 " << k2 << " k3 " << k3 << std::endl;
 #endif
-		if (BombMap[k2][k3] != 15)
+		if (BombMap[k2][k3] != arrSize)
 		{
-			BombMap[k2][k3] = 15;
+			BombMap[k2][k3] = arrSize;
 			BombCount--;
 		}
 	} while (!(BombCount == 0));
-	for (int stop = 15, k = 0; k <= stop; k++)
-		for (int stop = 15, k2 = 0; k2 <= stop; k2++)
-			if (BombMap[k][k2] == 15)
+	for (int stop = arrSize, k = 0; k <= stop; k++)
+		for (int stop = arrSize, k2 = 0; k2 <= stop; k2++)
+			if (BombMap[k][k2] == arrSize)
 			{
-				if ((BombMap[k + 1][k2] != 15) && (k < 15))
+				if ((BombMap[k + 1][k2] != arrSize) && (k < arrSize))
 					BombMap[k + 1][k2]++;
-				if ((BombMap[k][k2 + 1] != 15) && (k2 < 15))
+				if ((BombMap[k][k2 + 1] != arrSize) && (k2 < arrSize))
 					BombMap[k][k2 + 1]++;
-				if ((BombMap[k + 1][k2 + 1] != 15) && (k2 < 15) && (k < 15))
+				if ((BombMap[k + 1][k2 + 1] != arrSize) && (k2 < arrSize) && (k < arrSize))
 					BombMap[k + 1][k2 + 1]++;
-				if ((BombMap[k - 1][k2] != 15) && (k > 0))
+				if ((BombMap[k - 1][k2] != arrSize) && (k > 0))
 					BombMap[k - 1][k2]++;
-				if ((BombMap[k][k2 - 1] != 15) && (k2 > 0))
+				if ((BombMap[k][k2 - 1] != arrSize) && (k2 > 0))
 					BombMap[k][k2 - 1]++;
-				if ((BombMap[k + 1][k2 - 1] != 15) && (k2 > 0) && (k < 15))
+				if ((BombMap[k + 1][k2 - 1] != arrSize) && (k2 > 0) && (k < arrSize))
 					BombMap[k + 1][k2 - 1]++;
-				if ((BombMap[k - 1][k2 + 1] != 15) && (k > 0) && (k2 < 15))
+				if ((BombMap[k - 1][k2 + 1] != arrSize) && (k > 0) && (k2 < arrSize))
 					BombMap[k - 1][k2 + 1]++;
-				if ((BombMap[k - 1][k2 - 1] != 15) && (k > 0) && (k2 > 15))
+				if ((BombMap[k - 1][k2 - 1] != arrSize) && (k > 0) && (k2 > arrSize))
 					BombMap[k - 1][k2 - 1]++;
 			}
 	boom = false;
@@ -100,14 +103,13 @@ void addClearField(int a, int b, int& ClearCount, int* ClearC)
 {
 	bool fieldexist = false;
 	int w = 0;
-	fieldexist = false;
 	for (int stop = ClearCount, w = 1; w <= stop; w++)
-		if (ClearC[w - 1] == a * 15 + b)
+		if (ClearC[w - 1] == a * arrSize + b)
 			fieldexist = true;
 	if (!fieldexist)
 	{
 		ClearCount++;
-		ClearC[ClearCount - 1] = a * 15 + b;
+		ClearC[ClearCount - 1] = a * arrSize + b;
 	}
 }
 
@@ -115,7 +117,7 @@ void gameUpdate()
 {
 
 	int k = 0, k2 = 0, k11 = 0, k22 = 0;
-	int ClearC[225];
+	int ClearC[128];
 	int ClearCount = 0  //ClearCount - count of the empty cells
 		, Pointer = 0;
 	if ((!boom) && (!win))
@@ -127,26 +129,26 @@ void gameUpdate()
 
 		int X = SX;
 		int Y = SY;
-		if ((mode == 1) && (BombMap[k][k2] != 15) && (map[k][k2].state == 2))
+		if ((mode == 1) && (BombMap[k][k2] != arrSize) && (map[k][k2].state == 2))
 		{
 			mode = 3;
 			map[k][k2].state = 1;
 			BombCount--;
 		}
 		else
-			if ((mode == 1) && (BombMap[k][k2] != 15))
+			if ((mode == 1) && (BombMap[k][k2] != arrSize))
 			{
 				map[k][k2].state = 1;
 				mode = 3;
 			}
-			else if ((mode == 1) && (BombMap[k][k2] == 15))
+			else if ((mode == 1) && (BombMap[k][k2] == arrSize))
 			{
 				boom = true;
 				int bx = k;
 				int by = k2;
 				mode = 0;
 			}
-		if ((mode == 2) && (map[k][k2].state == 0) && (BombCount < 15))
+		if ((mode == 2) && (map[k][k2].state == 0))
 		{
 			map[k][k2].state = 2;
 			BombCount++;
@@ -161,16 +163,16 @@ void gameUpdate()
 		if ((BombMap[k][k2] == 0) && (mode == 3))
 		{
 			ClearCount++;
-			ClearC[ClearCount - 1] = ci * 15 + cj;
+			ClearC[ClearCount - 1] = ci * arrSize + cj;
 			Pointer = 1;
 		}
-		while ((ClearCount < 225) && (ClearCount > 0)) //open the empty cells
+		while ((ClearCount < 128) && (ClearCount > 0)) //open the empty cells
 		{
-			k = ClearC[Pointer - 1] / 15;
-			k2 = ClearC[Pointer - 1] % 15;
-			if (k < 15)
+			k = ClearC[Pointer - 1] / arrSize;
+			k2 = ClearC[Pointer - 1] % arrSize;
+			if (k < arrSize)
 			{
-				if ((BombMap[k + 1][k2] < 15) && (map[k + 1][k2].state != 2))
+				if ((BombMap[k + 1][k2] < arrSize) && (map[k + 1][k2].state != 2))
 					map[k + 1][k2].state = 1;
 				if ((BombMap[k + 1][k2] == 0) && (map[k + 1][k2].state != 2))
 				{
@@ -178,9 +180,9 @@ void gameUpdate()
 					addClearField(k11, k2, ClearCount, ClearC);
 				}
 			}
-			if (k2 < 15)
+			if (k2 < arrSize)
 			{
-				if ((BombMap[k][k2 + 1] < 15) && (map[k][k2 + 1].state != 2))
+				if ((BombMap[k][k2 + 1] < arrSize) && (map[k][k2 + 1].state != 2))
 					map[k][k2 + 1].state = 1;
 				if ((BombMap[k][k2 + 1] == 0) && (map[k][k2 + 1].state != 2))
 				{
@@ -188,9 +190,9 @@ void gameUpdate()
 					addClearField(k, k22, ClearCount, ClearC);
 				}
 			}
-			if ((k2 < 15) && (k < 15))
+			if ((k2 < arrSize) && (k < arrSize))
 			{
-				if ((BombMap[k + 1][k2 + 1] < 15) && (map[k + 1][k2 + 1].state != 2))
+				if ((BombMap[k + 1][k2 + 1] < arrSize) && (map[k + 1][k2 + 1].state != 2))
 					map[k + 1][k2 + 1].state = 1;
 				if ((BombMap[k + 1][k2 + 1] == 0) && (map[k + 1][k2 + 1].state != 2))
 				{
@@ -201,7 +203,7 @@ void gameUpdate()
 			}
 			if (k > 0)
 			{
-				if ((BombMap[k - 1][k2] < 15) && (map[k - 1][k2].state != 2))
+				if ((BombMap[k - 1][k2] < arrSize) && (map[k - 1][k2].state != 2))
 					map[k - 1][k2].state = 1;
 				if ((BombMap[k - 1][k2] == 0) && (map[k - 1][k2].state != 2))
 				{
@@ -211,7 +213,7 @@ void gameUpdate()
 			}
 			if ((k > 0) && (k2 > 0))
 			{
-				if ((BombMap[k - 1][k2 - 1] < 15) && (map[k - 1][k2 - 1].state != 2))
+				if ((BombMap[k - 1][k2 - 1] < arrSize) && (map[k - 1][k2 - 1].state != 2))
 					map[k - 1][k2 - 1].state = 1;
 				if ((BombMap[k - 1][k2 - 1] == 0) && (map[k - 1][k2 - 1].state != 2))
 				{
@@ -220,9 +222,10 @@ void gameUpdate()
 					addClearField(k11, k22, ClearCount, ClearC);
 				}
 			}
+
 			if (k2 > 0)
 			{
-				if ((BombMap[k][k2 - 1] < 15) && (map[k][k2 - 1].state != 2))
+				if ((BombMap[k][k2 - 1] < arrSize) && (map[k][k2 - 1].state != 2))
 					map[k][k2 - 1].state = 1;
 				if ((BombMap[k][k2 - 1] == 0) && (map[k][k2 - 1].state != 2))
 				{
@@ -230,9 +233,10 @@ void gameUpdate()
 					addClearField(k, k22, ClearCount, ClearC);
 				}
 			}
-			if ((k > 0) && (k2 < 15))
+			
+			if ((k > 0) && (k2 < arrSize))
 			{
-				if ((BombMap[k - 1][k2 + 1] < 15) && (map[k - 1][k2 + 1].state != 2))
+				if ((BombMap[k - 1][k2 + 1] < arrSize) && (map[k - 1][k2 + 1].state != 2))
 					map[k - 1][k2 + 1].state = 1;
 				if ((BombMap[k - 1][k2 + 1] == 0) && (map[k - 1][k2 + 1].state != 2))
 				{
@@ -241,9 +245,9 @@ void gameUpdate()
 					addClearField(k11, k22, ClearCount, ClearC);
 				}
 			}
-			if ((k < 15) && (k2 > 0))
+			if ((k < arrSize) && (k2 > 0))
 			{
-				if ((BombMap[k + 1][k2 - 1] < 15) && (map[k + 1][k2 - 1].state != 2))
+				if ((BombMap[k + 1][k2 - 1] < arrSize) && (map[k + 1][k2 - 1].state != 2))
 					map[k + 1][k2 - 1].state = 1;
 				if ((BombMap[k + 1][k2 - 1] == 0) && (map[k + 1][k2 - 1].state != 2))
 				{
@@ -254,15 +258,15 @@ void gameUpdate()
 			}
 			Pointer++;
 			if (Pointer > ClearCount)
-				ClearCount = 225; //Leave the loop
+				ClearCount = 128; //Leave the loop
 		}
 	}
 	k11 = 0;
-	for (int stop = 15, k = 0; k <= stop; k++)
-		for (int stop = 15, k2 = 0; k2 <= stop; k2++)
+	for (int stop = arrSize, k = 0; k <= stop; k++)
+		for (int stop = arrSize, k2 = 0; k2 <= stop; k2++)
 			if ((map[k][k2].state) == 0)
 				k11 = 1;
-	if ((k11 == 0) && (BombCount == 15))
+	if ((k11 == 0))
 		win = true;
 }
 
@@ -272,9 +276,9 @@ void GameTick() {
 		gameUpdate();
 		if (boom)
 		{
-			for (int stop = 15, k = 0; k <= stop; k++)
-				for (int stop = 15, k2 = 0; k2 <= stop; k2++)
-					if (BombMap[k][k2] == 15)
+			for (int stop = arrSize, k = 0; k <= stop; k++)
+				for (int stop = arrSize, k2 = 0; k2 <= stop; k2++)
+					if (BombMap[k][k2] == arrSize)
 						map[k][k2].state = 5;
 #ifdef DEBUG
 
@@ -298,8 +302,9 @@ int main()
 {
 	srand(time(NULL));
 	sf::RenderWindow window(sf::VideoMode(1024, 640), "Achtung! Minen!");
-	sf::Texture t, e, b, tf, expl, s, tr;
+	sf::Texture back,t, e, b, tf, expl, s, tr;
 	sf::Vector2f mouse;
+	back.loadFromFile("resources/background.png");
 	t.loadFromFile("resources/grass_tile_a.png");
 	tf.loadFromFile("resources/grass_tile_flag.png");
 	e.loadFromFile("resources/empty_cell.png");
@@ -309,7 +314,7 @@ int main()
 
 	expl.loadFromFile("resources/explosion.png");
 	AnimationManager explosion;
-	explosion.create("explosion", expl, 0, 0, 64, 64, 15, 0.045, 1, false, false);
+	explosion.create("explosion", expl, 0, 0, 64, 64, arrSize, 0.045, 1, false, false);
 	explosion.set("explosion");
 
 	sf::Font font, msgfont;
@@ -331,14 +336,14 @@ int main()
 
 	text.setFont(font);
 
-
+	sf::Sprite background(back);
 	sf::Sprite grass(t);
 	sf::Sprite dirt(e);
 	sf::Sprite bomb(b);
 	sf::Sprite flag(tf);
 	sf::Sprite selectedRect(s);
 	sf::Sprite tileRect(tr);
-	buildField(0, 300, 16, 16, grass);
+	buildField(480, 100, 16, 16, grass);
 	placeBombs();
 	sf::Clock clock;
 
@@ -353,9 +358,9 @@ int main()
 
 			if (event.type == sf::Event::MouseMoved) {
 				mouse = window.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y));
-				for (int i = 0; i <= 15; i++) {
-					for (int j = 0; j <= 15; j++) {
-						if ((mouse.x >= map[i][j].x) && (mouse.x <= map[i][j].x + 32) && (mouse.y >= map[i][j].y) && (mouse.y <= map[i][j].y + 64)) {
+				for (int i = 0; i <= arrSize; i++) {
+					for (int j = 0; j <= arrSize; j++) {
+						if ((mouse.x >= map[i][j].x) && (mouse.x <= map[i][j].x + 32) && (mouse.y >= map[i][j].y) && (mouse.y <= map[i][j].y + 32)) {
 							stx = map[i][j].x;
 							sty = map[i][j].y;
 #ifdef DEBUG
@@ -373,8 +378,8 @@ int main()
 			if (event.type == sf::Event::MouseButtonPressed) {
 				mouse = window.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y));
 				mode = 0;
-				for (int i = 0; i <= 15; i++) {
-					for (int j = 0; j <= 15; j++) {
+				for (int i = 0; i <= arrSize; i++) {
+					for (int j = 0; j <= arrSize; j++) {
 						if ((mouse.x >= map[i][j].x) && (mouse.x <= map[i][j].x + 32) && (mouse.y >= map[i][j].y) && (mouse.y <= map[i][j].y + 64)) {
 							SX = map[i][j].x;
 							SY = map[i][j].y;
@@ -401,11 +406,13 @@ int main()
 		GameTick();
 
 		window.clear();
+		background.setPosition(0, 0);
+		window.draw(background);
 
 
 		/*drawing the game field*/
-		for (int i = 0; i <= 15; i++) {
-			for (int j = 0; j <= 15; j++) {
+		for (int i = 0; i <= arrSize; i++) {
+			for (int j = 0; j <= arrSize; j++) {
 				sf::Sprite sprite;
 				switch (map[i][j].state)
 				{
@@ -439,7 +446,7 @@ int main()
 						text.setString(std::to_string(BombMap[i][j]));
 						text.setFillColor(sf::Color::White);
 						text.setCharacterSize(12);
-						text.setPosition(map[i][j].x + sprite.getGlobalBounds().width / 4, map[i][j].y + sprite.getGlobalBounds().height / 4);
+						text.setPosition(map[i][j].x + sprite.getGlobalBounds().width / 2, map[i][j].y + sprite.getGlobalBounds().height / 4);
 						window.draw(text);
 					}
 					//}
